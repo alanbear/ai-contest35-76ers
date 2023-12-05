@@ -57,7 +57,20 @@ class AiSearchResult:
     result: str
 
 
+# a decorator to log exception and raise
+def log_exception_and_raise(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            logger.exception("Exception in %s", func.__name__)
+            raise
+
+    return wrapper
+
+
 @app.route(route="prompt")
+@log_exception_and_raise
 def JakeTest(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")
     message = req.get_json()
@@ -213,3 +226,9 @@ if __name__ == "__main__":
     # print(query_openai(AiSearchBody(prompt="/tmp/php2usWAC")))
     # windows format
     print(query_openai(AiSearchBody(prompt="C:\\tmp\\\\\\php2usWAC")))
+
+    # @log_exception_and_raise
+    # def divide_by_zero():
+    #     return 1 / 0
+
+    # divide_by_zero()

@@ -41,37 +41,13 @@ class AiSearchConfig:
 
 
 @dataclasses.dataclass
-class AiSearchInput:
-    description: str
+class AiSearchBody:
+    prompt: str
 
 
 @dataclasses.dataclass
 class AiSearchResult:
     result: str
-
-
-def setup_byod(deployment_id: str) -> None:
-    """Sets up the OpenAI Python SDK to use your own data for the chat endpoint.
-
-    :param deployment_id: The deployment ID for the model to use with your own data.
-
-    To remove this configuration, simply set openai.requestssession to None.
-    """
-
-    class BringYourOwnDataAdapter(requests.adapters.HTTPAdapter):
-        def send(self, request, **kwargs):
-            request.url = f"{openai.api_base}/openai/deployments/{deployment_id}/extensions/chat/completions?api-version={openai.api_version}"
-            return super().send(request, **kwargs)
-
-    session = requests.Session()
-
-    # Mount a custom adapter which will use the extensions endpoint for any call using the given `deployment_id`
-    session.mount(
-        prefix=f"{openai.api_base}/openai/deployments/{deployment_id}",
-        adapter=BringYourOwnDataAdapter(),
-    )
-
-    openai.requestssession = session
 
 
 @app.route(route="prompt")
@@ -94,7 +70,7 @@ def JakeTest(req: func.HttpRequest) -> func.HttpResponse:
         )
     input_prompt = message["prompt"]
     logger.info("input_prompt: %s", input_prompt)
-    result = query_openai(AiSearchInput(description=input_prompt))
+    result = query_openai(AiSearchBody(ai_search_body=input_prompt))
     return func.HttpResponse(
         json.dumps({"result": result.result}),
         mimetype="application/json",
@@ -148,8 +124,8 @@ def setup_openai(open_ai_config: OpenAiConfig) -> None:
     openai.api_version = open_ai_config.api_version
 
 
-def query_openai(input_str: AiSearchInput) -> AiSearchResult:
-    logger.info("Input: %s", input_str)
+def query_openai(ai_search_body: AiSearchBody) -> AiSearchResult:
+    logger.info("Input: %s", ai_search_body)
     if is_running_in_azure_function():
         logger.info("Running in Azure Function. No need to load .env file")
     else:
@@ -164,10 +140,16 @@ def query_openai(input_str: AiSearchInput) -> AiSearchResult:
     ai_search_config = get_ai_search_config()
     setup_openai(open_ai_config)
     setup_byod(open_ai_config.deployment_id)
+    prompt = (
+        "Have we seen the file in the dataset? '{}'".format(ai_search_body.prompt)
+        + "\n"
+        + "Reply in the following format : 'answer', 'file sha1', 'date', 'rule id', 'industry', 'status tag' and the 'reason' of your analysis."
+    )
+
     message_text = [
         {
             "role": "user",
-            "content": "have we seen the file in the dataset? C:\\Users\\charles123\\Downloads\\adjuntos_13_06 (1).html , reply in the following format : 'answer', 'file sha1', 'date', 'rule id', 'industry', 'status tag' and the 'reason' of your analysis.",
+            "content": prompt,
         }
     ]
 
@@ -213,4 +195,4 @@ if __name__ == "__main__":
     # )
 
     # call the inner function instead
-    print(query_openai(AiSearchInput(description="This is a test")))
+    print(query_openai(AiSearchBody(prompt="/tmp/php2usWAC")))

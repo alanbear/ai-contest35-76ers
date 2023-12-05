@@ -149,8 +149,10 @@ def query_openai(ai_search_body: AiSearchBody) -> AiSearchResult:
     # replace leading C: D:, etc
     windows_disk_prefix_regex = re.compile(r"^[A-Z]:")
     # replace leading /tmp
-    normalized_prompt = windows_disk_prefix_regex.sub(
-        "", ai_search_body.prompt.replace("\\\\", "/").replace("\\", "/")
+    # replace all \* to single /
+    backslash_regex = re.compile(r"\\+")
+    normalized_prompt = backslash_regex.sub(
+        "/", windows_disk_prefix_regex.sub("", ai_search_body.prompt)
     )
     logger.info("original_prompt: %s", ai_search_body.prompt)
     logger.info("normalized_prompt: %s", normalized_prompt)
@@ -210,4 +212,4 @@ if __name__ == "__main__":
     # call the inner function instead
     # print(query_openai(AiSearchBody(prompt="/tmp/php2usWAC")))
     # windows format
-    print(query_openai(AiSearchBody(prompt="C:\\tmp\\php2usWAC")))
+    print(query_openai(AiSearchBody(prompt="C:\\tmp\\\\\\php2usWAC")))

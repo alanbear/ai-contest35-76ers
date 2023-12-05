@@ -8,6 +8,12 @@ import os
 
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
+logging.basicConfig(
+    level=logging.INFO,
+    # need line number and a time and file
+    # [] the time and level
+    format="[%(asctime)s] [%(levelname)s] %(filename)s:%(lineno)d %(message)s",
+)
 
 logger = logging.getLogger(__name__)
 
@@ -176,13 +182,6 @@ def query_openai(ai_search_body: AiSearchBody) -> AiSearchResult:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        # need line number and a time and file
-        # [] the time and level
-        format="[%(asctime)s] [%(levelname)s] %(filename)s:%(lineno)d %(message)s",
-    )
-
     # function all the patched function
     # I do not know how to invoke this function
     # from unittest import mock

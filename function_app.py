@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 def JakeTest(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")
 
-    message = req.get_json()
-    logging.info(message["prompt"])
+    input_prompt = req.get_json()["prompt"]
+    logging.info(input_prompt)
 
     result = {
         "result": "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a pers    onalized response."
@@ -28,6 +28,3 @@ def JakeTest(req: func.HttpRequest) -> func.HttpResponse:
 
 def is_running_in_azure_function() -> bool:
     return "fUNCTIONS_WORKER_RUNTIME" in os.environ
-
-if __name__ == "__main__":
-    print(JakeTest(None))

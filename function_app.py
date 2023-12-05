@@ -70,7 +70,7 @@ def JakeTest(req: func.HttpRequest) -> func.HttpResponse:
         )
     input_prompt = message["prompt"]
     logger.info("input_prompt: %s", input_prompt)
-    result = query_openai(AiSearchBody(ai_search_body=input_prompt))
+    result = query_openai(AiSearchBody(prompt=input_prompt))
     return func.HttpResponse(
         json.dumps({"result": result.result}),
         mimetype="application/json",

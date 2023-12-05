@@ -1,5 +1,6 @@
 import azure.functions as func
 import logging
+import re
 import json
 import dataclasses
 import openai
@@ -143,11 +144,23 @@ def query_openai(ai_search_body: AiSearchBody) -> AiSearchResult:
     ai_search_config = get_ai_search_config()
     setup_openai(open_ai_config)
     setup_byod(open_ai_config.deployment_id)
+
+    # 工人智慧
+    # replace leading C: D:, etc
+    windows_disk_prefix_regex = re.compile(r"^[A-Z]:")
+    # replace leading /tmp
+    normalized_prompt = windows_disk_prefix_regex.sub(
+        "", ai_search_body.prompt.replace("\\\\", "/").replace("\\", "/")
+    )
+    logger.info("original_prompt: %s", ai_search_body.prompt)
+    logger.info("normalized_prompt: %s", normalized_prompt)
+
     prompt = (
-        "Have we seen the file in the dataset? '{}'".format(ai_search_body.prompt)
+        "Have we seen the file in the dataset? '{}'".format(normalized_prompt)
         + "\n"
         + "Reply in the following format : 'answer', 'file sha1', 'date', 'rule id', 'industry', 'status tag' and the 'reason' of your analysis."
     )
+    logger.info("Prompt: %s", prompt)
 
     message_text = [
         {
@@ -175,7 +188,11 @@ def query_openai(ai_search_body: AiSearchBody) -> AiSearchResult:
     logger.info("Completion: %s", completion)
     result = completion.choices[0].message.content
     logger.info("Result: %s", result)
-    return AiSearchResult(result=result)
+    return AiSearchResult(
+        # result=result,
+        # 逆轉工人智慧
+        result=result.replace(normalized_prompt, ai_search_body.prompt)
+    )
 
 
 if __name__ == "__main__":
@@ -191,4 +208,6 @@ if __name__ == "__main__":
     # )
 
     # call the inner function instead
-    print(query_openai(AiSearchBody(prompt="/tmp/php2usWAC")))
+    # print(query_openai(AiSearchBody(prompt="/tmp/php2usWAC")))
+    # windows format
+    print(query_openai(AiSearchBody(prompt="C:\\tmp\\php2usWAC")))

@@ -9,7 +9,7 @@ def JakeTest(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
     
     result = {
-        result: "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a pers    onalized response."
+        "result": "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a pers    onalized response."
     }
     return func.HttpResponse(
         json.dumps(result),

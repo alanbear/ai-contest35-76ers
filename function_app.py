@@ -23,6 +23,9 @@ class AiSearchResult:
 @app.route(route="prompt")
 def JakeTest(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")
+    apikey = os.environ["api_key"]
+    searchkey = os.environ["search_key"]
+    logger.info("api_key: %s, search_key: %s", apikey, searchkey)
     message = req.get_json()
     if not message or "prompt" not in message:
         logger.error("Bad Request")
